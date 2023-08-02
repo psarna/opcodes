@@ -1,0 +1,16 @@
+spin_manifest_version = "1"
+authors = ["Piotr Sarna <sarna@turso.tech>"]
+description = "libSQL/SQLite opcode documentation fetcher"
+name = "opcodes"
+trigger = { type = "http", base = "/" }
+version = "0.1.0"
+
+[[component]]
+id = "opcodes"
+source = "target/wasm32-wasi/release/opcodes.wasm"
+allowed_http_hosts = ["sqlite.org"]
+[component.trigger]
+route = "/..."
+[component.build]
+command = "cargo build --target wasm32-wasi --release"
+watch = ["src/**/*.rs", "Cargo.toml"]
