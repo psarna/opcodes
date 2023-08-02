@@ -57,10 +57,8 @@ fn fetch_opcode_info(opcode_name: &str, exact_match: bool) -> Result<Option<byte
     }
 
     if exact_match {
-        println!("Returning none");
         return Ok(None);
     }
-    println!("Returning concat {}", concatenated_infos);
     Ok(Some(concatenated_infos.into()))
 }
 
@@ -73,6 +71,7 @@ fn handle_opcodes(req: Request) -> Result<Response> {
         .trim_start_matches('/')
         .trim_end_matches('/')
         .to_lowercase();
+    println!("Opcode {opcode}");
     let builder = http::Response::builder().status(200);
     let opcode_info = match opcode.as_str() {
         "" => {
