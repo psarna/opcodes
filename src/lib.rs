@@ -62,7 +62,7 @@ fn fetch_opcode_info(opcode_name: &str, exact_match: bool) -> Result<Option<byte
         println!("div.optab not found");
     }
 
-    if exact_match {
+    if exact_match || concatenated_infos.is_empty() {
         return Ok(None);
     }
     Ok(Some(concatenated_infos.into()))
@@ -92,5 +92,7 @@ fn handle_opcodes(req: Request) -> Result<Response> {
             None => fetch_opcode_info(&opcode, false)?,
         },
     };
+    let opcode_info =
+        Some(opcode_info.unwrap_or_else(|| format!("No opcodes found for `{opcode}`").into()));
     Ok(builder.body(opcode_info)?)
 }
