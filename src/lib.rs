@@ -6,7 +6,7 @@ use spin_sdk::{
 };
 
 fn fetch_opcode_info(opcode_name: &str, exact_match: bool) -> Result<Option<bytes::Bytes>> {
-    let req = http::Request::builder().uri("http://sqlite.org/opcode.html");
+    let req = http::Request::builder().uri("https://sqlite.org/opcode.html");
     let resp = spin_sdk::outbound_http::send_request(req.body(None)?)?;
     let resp = resp.into_body().context("Error fetching the webpage")?;
 
@@ -24,6 +24,7 @@ fn fetch_opcode_info(opcode_name: &str, exact_match: bool) -> Result<Option<byte
         let tables = optab_div.select(&table_selector);
 
         for table in tables {
+            println!("Checking table");
             // Find all the rows in the table
             let row_selector = Selector::parse("tr").unwrap();
             let rows = table.select(&row_selector);
@@ -31,9 +32,6 @@ fn fetch_opcode_info(opcode_name: &str, exact_match: bool) -> Result<Option<byte
             for row in rows {
                 // Workaround for buggy <td> tags in the SQLite webpage
                 let a_selector = Selector::parse("a").unwrap();
-                // Find the columns (td tags) in the row
-                let column_selector = Selector::parse("td").unwrap();
-                let columns = row.select(&column_selector).collect::<Vec<_>>();
                 let a_tags = row.select(&a_selector).collect::<Vec<_>>();
 
                 if !a_tags.is_empty() {
@@ -45,15 +43,23 @@ fn fetch_opcode_info(opcode_name: &str, exact_match: bool) -> Result<Option<byte
                     };
 
                     if matches {
+                        println!("Match found: {opcode} for {opcode_name}");
+                        // Find the columns (td tags) in the row
+                        let column_selector = Selector::parse("td").unwrap();
+                        let columns = row.select(&column_selector).collect::<Vec<_>>();
                         let info = columns[1].inner_html().trim().to_string();
                         if exact_match {
                             return Ok(Some(info.into()));
                         }
                         concatenated_infos += &format!("Opcode: {opcode}\n{info}\n\n");
                     }
+                } else {
+                    println!("a_tags empty");
                 }
             }
         }
+    } else {
+        println!("div.optab not found");
     }
 
     if exact_match {
